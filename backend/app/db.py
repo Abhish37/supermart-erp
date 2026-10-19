@@ -1,6 +1,7 @@
 """
 High-Performance Database Connection Pool using Psycopg 3 & Psycopg Pool
 Strict ACID Compliance & Reusable Connection Pooling for 15-20 Concurrent POS Terminals
+Supports both Cloud SSL (external) and Render Private Network (internal) connections
 """
 
 import logging
@@ -19,17 +20,21 @@ class Database:
 
     def get_pool(self) -> ConnectionPool:
         if self._pool is None:
+            is_ssl = "sslmode=require" in settings.DATABASE_URL or "oregon-postgres" in settings.DATABASE_URL
+            kwargs = {
+                "row_factory": dict_row,
+                "autocommit": False,
+                "connect_timeout": 15,
+            }
+            if is_ssl:
+                kwargs["sslmode"] = "require"
+
             self._pool = ConnectionPool(
                 conninfo=settings.DATABASE_URL,
                 min_size=1,
                 max_size=10,
                 timeout=15.0,
-                kwargs={
-                    "sslmode": "require",
-                    "row_factory": dict_row,
-                    "autocommit": False,
-                    "connect_timeout": 15,
-                },
+                kwargs=kwargs,
                 open=True,
             )
         return self._pool

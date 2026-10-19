@@ -43,13 +43,12 @@ export default function POSTerminalPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
 
-  // Focus input automatically
   useEffect(() => {
     inputRef.current?.focus();
     fetchRecentInvoices();
   }, [terminalId]);
 
-  // Connect WebSocket to FastAPI backend for instant price & stock sync
+  // Connect WebSocket to FastAPI backend
   useEffect(() => {
     const wsUri = `${WS_URL}/pos/${terminalId}`;
     const ws = new WebSocket(wsUri);
@@ -67,7 +66,6 @@ export default function POSTerminalPage() {
             type: "info",
             text: `⚡ DYNAMIC PRICE UPDATE: ${data.product_name} updated to ₹${data.new_price.toFixed(2)} across all POS terminals!`,
           });
-          // Update cart price if item is in cart
           setCart((prev) =>
             prev.map((item) =>
               item.sku_id === data.sku_id
@@ -75,8 +73,6 @@ export default function POSTerminalPage() {
                 : item
             )
           );
-        } else if (data.type === "INVENTORY_UPDATE") {
-          // Handled silently or update stock indicator
         }
       } catch (e) {
         // Ping response or string
@@ -103,7 +99,6 @@ export default function POSTerminalPage() {
     }
   };
 
-  // Barcode Scan Handler with Redis 800ms debounce
   const handleScanBarcode = async (codeToScan?: string) => {
     const code = (codeToScan || barcodeInput).trim();
     if (!code) return;
@@ -191,7 +186,6 @@ export default function POSTerminalPage() {
     setStatusMessage(null);
   };
 
-  // Atomic Checkout Execution
   const handleCheckout = async () => {
     if (cart.length === 0) {
       setStatusMessage({ type: "warning", text: "Cart is empty. Scan items first." });
@@ -237,7 +231,6 @@ export default function POSTerminalPage() {
     }
   };
 
-  // Strict Void Transaction (Disallow partial item unbilling post-checkout)
   const handleVoidInvoice = async (transactionId: string) => {
     const reason = prompt(
       `MANDATORY AUDIT REASON for cancelling invoice ${transactionId}:\n(Note: Post-checkout, individual items cannot be unbilled; the entire invoice must be voided.)`
@@ -270,7 +263,6 @@ export default function POSTerminalPage() {
   const totalAmount = cart.reduce((sum, item) => sum + item.selling_price * item.quantity, 0);
   const totalItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Ready-to-test seeded barcodes
   const sampleBarcodes = [
     { name: "Sugar 1kg (Shelf)", code: "8901000100009", price: 46.0 },
     { name: "Basmati Rice 1kg", code: "8901000100023", price: 100.3 },
@@ -284,15 +276,15 @@ export default function POSTerminalPage() {
   return (
     <div className="space-y-6">
       {/* TERMINAL HEADER & SCANNER BAR */}
-      <div className="bg-zinc-950 border border-zinc-800 p-4 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white border border-zinc-200 shadow-xs p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="bg-white text-black font-black px-3 py-1.5 rounded text-sm tracking-wider uppercase">
+          <div className="bg-zinc-900 text-white font-black px-3 py-1.5 rounded text-sm tracking-wider uppercase">
             TERMINAL
           </div>
           <select
             value={terminalId}
             onChange={(e) => setTerminalId(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 text-white px-3 py-1.5 rounded text-sm font-mono focus:outline-none focus:border-white"
+            className="bg-zinc-50 border border-zinc-300 text-zinc-900 px-3 py-1.5 rounded text-sm font-mono focus:outline-none focus:ring-1 focus:ring-zinc-900"
           >
             {Array.from({ length: 20 }, (_, i) => {
               const id = `POS-${(i + 1).toString().padStart(2, "0")}`;
@@ -303,7 +295,7 @@ export default function POSTerminalPage() {
               );
             })}
           </select>
-          <span className="text-xs font-mono text-zinc-400">
+          <span className="text-xs font-mono text-zinc-500">
             {wsConnected ? "• Connected (Low Latency)" : "• Connecting..."}
           </span>
         </div>
@@ -323,13 +315,13 @@ export default function POSTerminalPage() {
               value={barcodeInput}
               onChange={(e) => setBarcodeInput(e.target.value)}
               placeholder="SCAN EAN-13 BARCODE OR ENTER SKU..."
-              className="w-full bg-black border-2 border-zinc-700 focus:border-white text-white px-4 py-2 text-sm font-mono tracking-wider rounded focus:outline-none transition-colors"
+              className="w-full bg-white border-2 border-zinc-300 focus:border-zinc-900 text-zinc-900 px-4 py-2 text-sm font-mono tracking-wider rounded-lg focus:outline-none transition-colors"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="bg-white hover:bg-zinc-200 text-black font-bold px-5 py-2 text-sm uppercase tracking-wider rounded transition-colors disabled:opacity-50"
+            className="bg-black hover:bg-zinc-800 text-white font-bold px-5 py-2 text-sm uppercase tracking-wider rounded-lg transition-colors disabled:opacity-50"
           >
             Scan
           </button>
@@ -339,14 +331,14 @@ export default function POSTerminalPage() {
       {/* STATUS NOTIFICATION BANNER */}
       {statusMessage && (
         <div
-          className={`px-4 py-2.5 rounded border text-sm font-mono tracking-wide transition-all ${
+          className={`px-4 py-2.5 rounded-lg border text-sm font-mono tracking-wide transition-all shadow-xs ${
             statusMessage.type === "success"
-              ? "bg-zinc-900 border-zinc-700 text-white"
+              ? "bg-emerald-50 border-emerald-300 text-emerald-900 font-medium"
               : statusMessage.type === "warning"
-              ? "bg-amber-950/40 border-amber-600 text-amber-300"
+              ? "bg-amber-50 border-amber-300 text-amber-900 font-medium"
               : statusMessage.type === "error"
-              ? "bg-red-950/40 border-red-600 text-red-300"
-              : "bg-blue-950/40 border-blue-600 text-blue-300"
+              ? "bg-red-50 border-red-300 text-red-900 font-medium"
+              : "bg-blue-50 border-blue-300 text-blue-900 font-medium"
           }`}
         >
           {statusMessage.text}
@@ -354,20 +346,20 @@ export default function POSTerminalPage() {
       )}
 
       {/* QUICK BARCODE TEST TRAYS */}
-      <div className="bg-zinc-950 border border-zinc-800 p-3 rounded-lg">
-        <div className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-2 flex items-center justify-between">
+      <div className="bg-white border border-zinc-200 shadow-xs p-3.5 rounded-xl">
+        <div className="text-xs font-mono uppercase tracking-wider text-zinc-500 mb-2.5 flex items-center justify-between">
           <span>Simulation Tray (Click to Scan &bull; Double-Click Rapidly to Trigger 800ms Redis Debounce)</span>
-          <span className="text-zinc-400">800ms Debounce Shield Active</span>
+          <span className="text-zinc-600 font-medium">800ms Debounce Shield Active</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {sampleBarcodes.map((item) => (
             <button
               key={item.code}
               onClick={() => handleScanBarcode(item.code)}
-              className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-600 text-zinc-300 hover:text-white px-3 py-1.5 rounded text-xs font-mono flex items-center gap-2 transition-colors"
+              className="bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 hover:border-zinc-400 text-zinc-800 px-3 py-1.5 rounded-md text-xs font-mono flex items-center gap-2 transition-colors shadow-2xs"
             >
-              <span>{item.name}</span>
-              <span className="text-zinc-400">₹{item.price}</span>
+              <span className="font-medium">{item.name}</span>
+              <span className="text-zinc-500 font-semibold">₹{item.price}</span>
             </button>
           ))}
         </div>
@@ -375,16 +367,16 @@ export default function POSTerminalPage() {
 
       {/* MAIN CHECKOUT SPLIT: CART TABLE + TOTALS & ACTIONS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* CART LINE ITEMS (2 COLS) */}
-        <div className="lg:col-span-2 bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden flex flex-col min-h-[420px]">
-          <div className="border-b border-zinc-800 px-4 py-3 flex items-center justify-between bg-black">
-            <h2 className="font-bold text-sm uppercase tracking-wider text-white">
+        {/* CART LINE ITEMS */}
+        <div className="lg:col-span-2 bg-white border border-zinc-200 shadow-xs rounded-xl overflow-hidden flex flex-col min-h-[420px]">
+          <div className="border-b border-zinc-200 px-4 py-3 flex items-center justify-between bg-zinc-50/70">
+            <h2 className="font-bold text-sm uppercase tracking-wider text-zinc-900">
               Current Cart ({totalItemsCount} items)
             </h2>
             {cart.length > 0 && (
               <button
                 onClick={clearCart}
-                className="text-xs font-mono text-zinc-400 hover:text-red-400 uppercase tracking-wider transition-colors"
+                className="text-xs font-mono text-zinc-500 hover:text-red-600 uppercase tracking-wider transition-colors font-medium"
               >
                 Clear Cart
               </button>
@@ -400,7 +392,7 @@ export default function POSTerminalPage() {
             ) : (
               <table className="w-full text-left text-xs font-mono border-collapse">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-zinc-400 bg-zinc-900/50 uppercase tracking-wider">
+                  <tr className="border-b border-zinc-200 text-zinc-600 bg-zinc-50/50 uppercase tracking-wider">
                     <th className="py-2.5 px-3">#</th>
                     <th className="py-2.5 px-3">Item Description</th>
                     <th className="py-2.5 px-3">Location</th>
@@ -410,44 +402,44 @@ export default function POSTerminalPage() {
                     <th className="py-2.5 px-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-900 text-zinc-200">
+                <tbody className="divide-y divide-zinc-100 text-zinc-800">
                   {cart.map((item, index) => (
-                    <tr key={item.barcode} className="hover:bg-zinc-900/40 transition-colors">
+                    <tr key={item.barcode} className="hover:bg-zinc-50 transition-colors">
                       <td className="py-3 px-3 text-zinc-400">{index + 1}</td>
                       <td className="py-3 px-3">
-                        <div className="font-bold text-white text-sm">{item.name}</div>
-                        <div className="text-[11px] text-zinc-400">{item.barcode}</div>
+                        <div className="font-bold text-zinc-900 text-sm">{item.name}</div>
+                        <div className="text-[11px] text-zinc-500">{item.barcode}</div>
                       </td>
-                      <td className="py-3 px-3 text-zinc-400">{item.location || "Retail Floor"}</td>
-                      <td className="py-3 px-3 text-right font-mono-num font-semibold text-white">
+                      <td className="py-3 px-3 text-zinc-600">{item.location || "Retail Floor"}</td>
+                      <td className="py-3 px-3 text-right font-mono-num font-semibold text-zinc-900">
                         ₹{item.selling_price.toFixed(2)}
                       </td>
                       <td className="py-3 px-3 text-center">
-                        <div className="inline-flex items-center border border-zinc-700 rounded overflow-hidden">
+                        <div className="inline-flex items-center border border-zinc-300 rounded overflow-hidden bg-white shadow-2xs">
                           <button
                             onClick={() => updateQuantity(item.barcode, -1)}
-                            className="px-2 py-0.5 hover:bg-zinc-800 text-zinc-300"
+                            className="px-2 py-0.5 hover:bg-zinc-100 text-zinc-700"
                           >
                             -
                           </button>
-                          <span className="px-2 py-0.5 font-bold font-mono-num text-white">
+                          <span className="px-2 py-0.5 font-bold font-mono-num text-zinc-900">
                             {item.quantity}
                           </span>
                           <button
                             onClick={() => updateQuantity(item.barcode, 1)}
-                            className="px-2 py-0.5 hover:bg-zinc-800 text-zinc-300"
+                            className="px-2 py-0.5 hover:bg-zinc-100 text-zinc-700"
                           >
                             +
                           </button>
                         </div>
                       </td>
-                      <td className="py-3 px-3 text-right font-mono-num font-bold text-white text-sm">
+                      <td className="py-3 px-3 text-right font-mono-num font-bold text-zinc-900 text-sm">
                         ₹{(item.selling_price * item.quantity).toFixed(2)}
                       </td>
                       <td className="py-3 px-3 text-center">
                         <button
                           onClick={() => updateQuantity(item.barcode, -item.quantity)}
-                          className="text-zinc-400 hover:text-red-400"
+                          className="text-zinc-400 hover:text-red-600 font-bold"
                         >
                           ✕
                         </button>
@@ -460,26 +452,26 @@ export default function POSTerminalPage() {
           </div>
         </div>
 
-        {/* TOTALS & CHECKOUT ACTIONS (1 COL) */}
-        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-5 flex flex-col justify-between">
+        {/* TOTALS & CHECKOUT ACTIONS */}
+        <div className="bg-white border border-zinc-200 shadow-xs rounded-xl p-5 flex flex-col justify-between">
           <div className="space-y-6">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-400 border-b border-zinc-800 pb-2">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500 border-b border-zinc-200 pb-2">
               Payment & Bill Summary
             </h2>
 
-            {/* GRAND TOTAL MONOCHROME DISPLAY */}
-            <div className="bg-black border border-zinc-800 p-4 rounded text-center">
-              <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest block mb-1">
+            {/* GRAND TOTAL DISPLAY */}
+            <div className="bg-zinc-50 border border-zinc-200 p-4 rounded-xl text-center">
+              <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest block mb-1">
                 Net Payable Amount
               </span>
-              <span className="text-4xl font-black font-mono-num text-white tracking-tight">
+              <span className="text-4xl font-black font-mono-num text-zinc-900 tracking-tight">
                 ₹{totalAmount.toFixed(2)}
               </span>
             </div>
 
             {/* PAYMENT MODE SELECTOR */}
             <div>
-              <label className="text-xs font-mono uppercase tracking-wider text-zinc-400 block mb-2">
+              <label className="text-xs font-mono uppercase tracking-wider text-zinc-600 block mb-2 font-medium">
                 Payment Mode
               </label>
               <div className="grid grid-cols-3 gap-2 font-mono text-xs uppercase">
@@ -487,10 +479,10 @@ export default function POSTerminalPage() {
                   <button
                     key={mode}
                     onClick={() => setPaymentMode(mode)}
-                    className={`py-2 rounded font-bold border transition-colors ${
+                    className={`py-2 rounded-lg font-bold border transition-colors ${
                       paymentMode === mode
-                        ? "bg-white text-black border-white"
-                        : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-600"
+                        ? "bg-black text-white border-black shadow-xs"
+                        : "bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-400"
                     }`}
                   >
                     {mode}
@@ -500,22 +492,22 @@ export default function POSTerminalPage() {
             </div>
 
             {paymentMode === "UPI" && (
-              <div className="border border-zinc-800 bg-zinc-900/50 p-3 rounded text-center text-xs font-mono text-zinc-400">
-                <span className="text-emerald-400 font-bold block mb-1">✓ DYNAMIC QR READY</span>
+              <div className="border border-emerald-200 bg-emerald-50/60 p-3 rounded-lg text-center text-xs font-mono text-emerald-900">
+                <span className="text-emerald-700 font-bold block mb-1">✓ DYNAMIC QR READY</span>
                 Scan UPI on POS display to complete
               </div>
             )}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-zinc-800 space-y-3">
+          <div className="mt-6 pt-4 border-t border-zinc-200 space-y-3">
             <button
               onClick={handleCheckout}
               disabled={cart.length === 0 || loading}
-              className="w-full bg-white hover:bg-zinc-200 text-black font-black py-4 rounded text-base uppercase tracking-widest transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+              className="w-full bg-black hover:bg-zinc-800 text-white font-black py-4 rounded-xl text-base uppercase tracking-widest transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
             >
               {loading ? "LOCKING LEDGER..." : "ATOMIC CHECKOUT [ENTER]"}
             </button>
-            <p className="text-[11px] text-center font-mono text-zinc-400">
+            <p className="text-[11px] text-center font-mono text-zinc-500">
               ACID Compliant &bull; Disallows Partial Post-Checkout Unbilling
             </p>
           </div>
@@ -524,32 +516,32 @@ export default function POSTerminalPage() {
 
       {/* COMPLETED RECEIPT MODAL */}
       {activeReceipt && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-zinc-950 border border-zinc-700 max-w-md w-full p-6 rounded-lg font-mono space-y-4">
-            <div className="text-center border-b border-zinc-800 pb-3">
-              <h3 className="font-black text-lg text-white tracking-widest">SUPERMART RETAIL</h3>
-              <p className="text-xs text-zinc-400">High-Velocity Lane Checkout</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-zinc-300 shadow-2xl max-w-md w-full p-6 rounded-xl font-mono space-y-4">
+            <div className="text-center border-b border-zinc-200 pb-3">
+              <h3 className="font-black text-lg text-zinc-900 tracking-widest">SUPERMART RETAIL</h3>
+              <p className="text-xs text-zinc-500">High-Velocity Lane Checkout</p>
             </div>
-            <div className="text-xs space-y-1 text-zinc-300">
-              <div>Invoice: <span className="text-white font-bold">{activeReceipt.transaction_id}</span></div>
+            <div className="text-xs space-y-1 text-zinc-700">
+              <div>Invoice: <span className="text-zinc-900 font-bold">{activeReceipt.transaction_id}</span></div>
               <div>Terminal: {activeReceipt.pos_terminal_id}</div>
               <div>Payment: {activeReceipt.payment_mode}</div>
-              <div>Total: <span className="text-white font-bold text-sm">₹{activeReceipt.total_amount?.toFixed(2)}</span></div>
+              <div>Total: <span className="text-zinc-900 font-bold text-sm">₹{activeReceipt.total_amount?.toFixed(2)}</span></div>
             </div>
-            <div className="border-t border-b border-zinc-800 py-2 text-xs space-y-1">
+            <div className="border-t border-b border-zinc-200 py-2 text-xs space-y-1">
               {activeReceipt.items?.map((it: any) => (
-                <div key={it.barcode} className="flex justify-between">
+                <div key={it.barcode} className="flex justify-between text-zinc-800">
                   <span>{it.name} x {it.quantity}</span>
-                  <span className="font-bold text-white">₹{(it.selling_price * it.quantity).toFixed(2)}</span>
+                  <span className="font-bold text-zinc-900">₹{(it.selling_price * it.quantity).toFixed(2)}</span>
                 </div>
               ))}
             </div>
-            <div className="text-[11px] text-zinc-400 text-center">
+            <div className="text-[11px] text-zinc-500 text-center">
               * Note: Strict ledger rule. No partial unbilling. Invoice must be voided in full to reverse.
             </div>
             <button
               onClick={() => setActiveReceipt(null)}
-              className="w-full bg-white text-black font-bold py-2 rounded text-xs uppercase tracking-wider"
+              className="w-full bg-black text-white font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider hover:bg-zinc-800 transition-colors"
             >
               Dismiss / Next Customer
             </button>
@@ -558,12 +550,12 @@ export default function POSTerminalPage() {
       )}
 
       {/* RECENT INVOICES & STRICT VOID SECTION */}
-      <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-lg space-y-3">
+      <div className="bg-white border border-zinc-200 shadow-xs p-5 rounded-xl space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-white">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900">
             Recent Invoices (Atomic Ledger Audit)
           </h2>
-          <span className="text-xs font-mono text-zinc-400">
+          <span className="text-xs font-mono text-zinc-500">
             Rule: Mandatory Full Voiding (No Partial Unbilling)
           </span>
         </div>
@@ -571,7 +563,7 @@ export default function POSTerminalPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono border-collapse">
             <thead>
-              <tr className="border-b border-zinc-800 text-zinc-400 bg-zinc-900/50 uppercase">
+              <tr className="border-b border-zinc-200 text-zinc-600 bg-zinc-50/60 uppercase">
                 <th className="py-2 px-3">Invoice ID</th>
                 <th className="py-2 px-3">Terminal</th>
                 <th className="py-2 px-3">Payment</th>
@@ -581,34 +573,34 @@ export default function POSTerminalPage() {
                 <th className="py-2 px-3 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-900 text-zinc-300">
+            <tbody className="divide-y divide-zinc-100 text-zinc-800">
               {recentInvoices.map((inv) => (
-                <tr key={inv.transaction_id} className="hover:bg-zinc-900/30">
-                  <td className="py-2.5 px-3 font-bold text-white">{inv.transaction_id}</td>
-                  <td className="py-2.5 px-3 text-zinc-400">{inv.pos_terminal_id}</td>
+                <tr key={inv.transaction_id} className="hover:bg-zinc-50/60 transition-colors">
+                  <td className="py-2.5 px-3 font-bold text-zinc-900">{inv.transaction_id}</td>
+                  <td className="py-2.5 px-3 text-zinc-600">{inv.pos_terminal_id}</td>
                   <td className="py-2.5 px-3">{inv.payment_mode}</td>
-                  <td className="py-2.5 px-3 text-right font-bold text-white">
+                  <td className="py-2.5 px-3 text-right font-bold text-zinc-900">
                     ₹{Number(inv.total_amount).toFixed(2)}
                   </td>
                   <td className="py-2.5 px-3 text-center">
                     <span
                       className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${
                         inv.status === "COMPLETED"
-                          ? "bg-zinc-800 text-emerald-400 border border-emerald-900"
-                          : "bg-red-950 text-red-400 border border-red-900"
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                          : "bg-red-50 text-red-800 border border-red-300"
                       }`}
                     >
                       {inv.status}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-zinc-400 text-[11px] max-w-xs truncate">
+                  <td className="py-2.5 px-3 text-zinc-500 text-[11px] max-w-xs truncate">
                     {inv.voided_reason || "Normal checkout"}
                   </td>
                   <td className="py-2.5 px-3 text-center">
                     {inv.status === "COMPLETED" && (
                       <button
                         onClick={() => handleVoidInvoice(inv.transaction_id)}
-                        className="bg-zinc-900 hover:bg-red-950 text-zinc-400 hover:text-red-300 border border-zinc-800 hover:border-red-800 px-2.5 py-1 rounded text-[11px] font-mono uppercase tracking-wider transition-colors"
+                        className="bg-zinc-50 hover:bg-red-50 text-zinc-700 hover:text-red-700 border border-zinc-200 hover:border-red-300 px-2.5 py-1 rounded text-[11px] font-mono uppercase tracking-wider transition-colors shadow-2xs"
                       >
                         Void Invoice
                       </button>

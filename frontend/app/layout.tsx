@@ -13,17 +13,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-black text-zinc-100 flex flex-col font-sans selection:bg-zinc-800 selection:text-white">
+    <html lang="en">
+      <body className="min-h-screen bg-slate-50/60 text-zinc-900 flex flex-col font-sans selection:bg-zinc-900 selection:text-white">
         {/* TOP SYSTEM BAR */}
-        <header className="border-b border-zinc-800 bg-zinc-950 px-6 py-3 sticky top-0 z-50">
+        <header className="border-b border-zinc-200 bg-white px-6 py-3.5 sticky top-0 z-50 shadow-sm">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <Link href="/" className="flex items-center gap-2">
-                <span className="font-black text-lg tracking-wider text-white border border-white px-2 py-0.5 rounded-sm">
+              <Link href="/" className="flex items-center gap-2 group">
+                <span className="font-black text-lg tracking-wider text-white bg-black border border-black px-2.5 py-0.5 rounded-sm shadow-sm group-hover:bg-zinc-800 transition-colors">
                   SUPERMART
                 </span>
-                <span className="text-xs font-mono uppercase text-zinc-400 tracking-widest hidden sm:inline">
+                <span className="text-xs font-mono uppercase text-zinc-500 tracking-widest hidden sm:inline">
                   ERP &bull; POS
                 </span>
               </Link>
@@ -31,25 +31,25 @@ export default function RootLayout({
               <nav className="flex items-center gap-1 text-xs font-mono uppercase tracking-wider">
                 <Link
                   href="/"
-                  className="px-3 py-1.5 rounded hover:bg-zinc-800 text-white font-bold transition-colors"
+                  className="px-3 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-900 font-bold transition-colors"
                 >
                   POS Billing
                 </Link>
                 <Link
                   href="/dashboard"
-                  className="px-3 py-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                  className="px-3 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors"
                 >
                   Owner Dashboard
                 </Link>
                 <Link
                   href="/repackage"
-                  className="px-3 py-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                  className="px-3 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors"
                 >
                   Bulk Repackaging
                 </Link>
                 <Link
                   href="/replenishment"
-                  className="px-3 py-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                  className="px-3 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors"
                 >
                   Replenishment & POs
                 </Link>
@@ -57,9 +57,9 @@ export default function RootLayout({
             </div>
 
             <div className="flex items-center gap-4 text-xs font-mono">
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-semibold tracking-wider">WS ACTIVE (15-20 POS)</span>
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                <span className="font-bold tracking-wider text-[11px]">WS ACTIVE (15-20 POS)</span>
               </div>
             </div>
           </div>
@@ -71,7 +71,7 @@ export default function RootLayout({
         </main>
 
         {/* FOOTER */}
-        <footer className="border-t border-zinc-900 bg-zinc-950 py-3 text-center text-xs font-mono text-zinc-400">
+        <footer className="border-t border-zinc-200 bg-white py-4 text-center text-xs font-mono text-zinc-500">
           SuperMart High-Velocity POS &bull; Strict ACID Ledger Enforcement &bull; Payday Tsunami Architecture
         </footer>
       </body>

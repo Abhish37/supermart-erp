@@ -66,7 +66,7 @@ interface ReceiptData {
 }
 
 export default function POSTerminalPage() {
-  const terminalId = "POS-01";
+  const [terminalId, setTerminalId] = useState("POS-01");
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws";
 
@@ -377,8 +377,8 @@ export default function POSTerminalPage() {
         return;
       }
 
-      // Spacebar: Trigger Checkout
-      if (e.key === " " && cart.length > 0 && !isInput) {
+      // 'c' or 'C': Trigger Checkout
+      if ((e.key === "c" || e.key === "C") && cart.length > 0 && !isInput) {
         e.preventDefault();
         setIsCheckoutOpen(true);
         return;
@@ -589,9 +589,32 @@ export default function POSTerminalPage() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-mono font-black text-sm tracking-wider uppercase text-emerald-400">
-              TERMINAL: {terminalId}
-            </span>
+            <label className="font-mono font-bold text-xs uppercase text-zinc-400">TERMINAL:</label>
+            <select
+              value={terminalId}
+              onChange={(e) => {
+                setTerminalId(e.target.value);
+                setSession((prev) => (prev ? { ...prev, pos_terminal_id: e.target.value } : prev));
+              }}
+              className="bg-black text-emerald-400 border border-emerald-500/60 rounded px-2.5 py-1 text-xs font-mono font-black tracking-wider focus:outline-none focus:ring-1 focus:ring-emerald-400 cursor-pointer"
+            >
+              {[
+                { id: "POS-01", label: "POS-1" },
+                { id: "POS-02", label: "POS-2" },
+                { id: "POS-03", label: "POS-3" },
+                { id: "POS-04", label: "POS-4" },
+                { id: "POS-05", label: "POS-5" },
+                { id: "POS-06", label: "POS-6" },
+                { id: "POS-07", label: "POS-7" },
+                { id: "POS-08", label: "POS-8" },
+                { id: "POS-09", label: "POS-9" },
+                { id: "POS-10", label: "POS-10" },
+              ].map((pos) => (
+                <option key={pos.id} value={pos.id} className="bg-zinc-900 text-white font-mono font-bold">
+                  {pos.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="h-4 w-px bg-zinc-800" />
@@ -601,21 +624,6 @@ export default function POSTerminalPage() {
             <span className="text-zinc-400">CASHIER:</span>
             <span className="font-bold text-white">{session?.cashier_name || "Unassigned"}</span>
             <span className="text-zinc-500">[{session?.employee_id || "EMP-000"}]</span>
-
-            {/* Fault counter indicator */}
-            {session && (
-              <span
-                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                  session.fault_badge === "RED"
-                    ? "bg-red-950 text-red-400 border border-red-700 animate-pulse"
-                    : session.fault_badge === "YELLOW"
-                    ? "bg-amber-950 text-amber-400 border border-amber-700"
-                    : "bg-zinc-800 text-zinc-300 border border-zinc-700"
-                }`}
-              >
-                FAULTS: {session.fault_count}
-              </span>
-            )}
           </div>
         </div>
 
@@ -729,8 +737,8 @@ export default function POSTerminalPage() {
                 <p className="font-mono text-sm font-bold text-zinc-600 uppercase">POS CART IS EMPTY</p>
                 <p className="text-xs text-zinc-400 mt-1 max-w-sm">
                   Aim barcode scanner at merchandise or enter EAN-13 code above. Press{" "}
-                  <kbd className="px-1.5 py-0.5 bg-zinc-200 text-zinc-700 rounded font-mono text-xs">
-                    [Spacebar]
+                  <kbd className="px-1.5 py-0.5 bg-zinc-200 text-zinc-700 rounded font-mono text-xs font-bold">
+                    [C]
                   </kbd>{" "}
                   when finished to trigger checkout.
                 </p>
@@ -833,7 +841,7 @@ export default function POSTerminalPage() {
               disabled={cart.length === 0}
               className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-300 text-black font-mono font-black text-sm uppercase tracking-wider rounded-md shadow-md flex items-center justify-center gap-2 transition-transform active:scale-98"
             >
-              <span>CHECKOUT [SPACEBAR]</span>
+              <span>CHECKOUT [C]</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
@@ -856,7 +864,7 @@ export default function POSTerminalPage() {
         <div className="flex items-center gap-4 flex-wrap">
           <span className="text-zinc-500 font-bold">HOTKEYS:</span>
           <span className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 bg-zinc-800 text-emerald-400 rounded font-bold">[SPACE]</kbd> Checkout
+            <kbd className="px-1.5 py-0.5 bg-zinc-800 text-emerald-400 rounded font-bold">[C]</kbd> Checkout
           </span>
           <span className="flex items-center gap-1">
             <kbd className="px-1.5 py-0.5 bg-zinc-800 text-zinc-300 rounded font-bold">[+ / -]</kbd> Qty Adjust
@@ -1202,7 +1210,7 @@ export default function POSTerminalPage() {
 
             <div className="p-5 space-y-3">
               <div className="flex justify-between py-1 border-b border-zinc-100">
-                <span className="font-bold">[Spacebar]</span>
+                <span className="font-bold text-emerald-600">[C]</span>
                 <span className="text-zinc-600">Open Checkout Payment Modal</span>
               </div>
               <div className="flex justify-between py-1 border-b border-zinc-100">

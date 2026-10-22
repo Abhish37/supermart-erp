@@ -829,8 +829,22 @@ export default function AdminOwnerDashboard() {
                   onChange={(e) => setTallyTerminal(e.target.value)}
                   className="w-full px-3 py-2 bg-black border border-zinc-700 rounded text-white focus:outline-none"
                 >
-                  <option value="POS-01">POS-01 (Lane 1)</option>
-                  <option value="POS-02">POS-02 (Lane 2)</option>
+                  {[
+                    { id: "POS-01", label: "POS-1 (Lane 1)" },
+                    { id: "POS-02", label: "POS-2 (Lane 2)" },
+                    { id: "POS-03", label: "POS-3 (Lane 3)" },
+                    { id: "POS-04", label: "POS-4 (Lane 4)" },
+                    { id: "POS-05", label: "POS-5 (Lane 5)" },
+                    { id: "POS-06", label: "POS-6 (Lane 6)" },
+                    { id: "POS-07", label: "POS-7 (Lane 7)" },
+                    { id: "POS-08", label: "POS-8 (Lane 8)" },
+                    { id: "POS-09", label: "POS-9 (Lane 9)" },
+                    { id: "POS-10", label: "POS-10 (Lane 10)" },
+                  ].map((pos) => (
+                    <option key={pos.id} value={pos.id}>
+                      {pos.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 

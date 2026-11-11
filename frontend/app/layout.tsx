@@ -28,30 +28,48 @@ export default function RootLayout({
                 </span>
               </Link>
 
-              <nav className="flex items-center gap-1 text-xs font-mono uppercase tracking-wider">
+              <nav className="flex items-center gap-1 text-xs font-mono uppercase tracking-wider overflow-x-auto py-1">
                 <Link
                   href="/"
-                  className="px-3 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-900 font-bold transition-colors"
+                  className="px-2.5 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-900 font-bold transition-colors whitespace-nowrap"
                 >
                   POS Billing
                 </Link>
                 <Link
                   href="/dashboard"
-                  className="px-3 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors"
+                  className="px-2.5 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors whitespace-nowrap"
                 >
-                  Owner Dashboard
-                </Link>
-                <Link
-                  href="/repackage"
-                  className="px-3 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors"
-                >
-                  Bulk Repackaging
+                  Overview
                 </Link>
                 <Link
                   href="/replenishment"
-                  className="px-3 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors"
+                  className="px-2.5 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors whitespace-nowrap"
                 >
-                  Replenishment & POs
+                  Replenishment
+                </Link>
+                <Link
+                  href="/inventory"
+                  className="px-2.5 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors whitespace-nowrap"
+                >
+                  Expiry & Repack
+                </Link>
+                <Link
+                  href="/merchandising"
+                  className="px-2.5 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors whitespace-nowrap"
+                >
+                  Basket & Lift
+                </Link>
+                <Link
+                  href="/khata"
+                  className="px-2.5 py-1.5 rounded-md hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 font-medium transition-colors whitespace-nowrap"
+                >
+                  Customer Khata
+                </Link>
+                <Link
+                  href="/assistant"
+                  className="px-2.5 py-1.5 rounded-md bg-blue-50 text-blue-800 hover:bg-blue-100 font-bold transition-colors whitespace-nowrap border border-blue-200"
+                >
+                  AI Analyst
                 </Link>
               </nav>
             </div>

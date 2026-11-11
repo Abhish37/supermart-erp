@@ -46,6 +46,8 @@ from .supply_chain import (
 )
 from .pdf_export import generate_financial_ledger_pdf, FINANCIAL_REPORT_DIR
 
+from .api.api_v1 import api_v1_router
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="2.0.0",
@@ -60,6 +62,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount RIDSS Production REST API v1
+app.include_router(api_v1_router)
 
 # =========================================================================
 # WEBSOCKET ENDPOINTS

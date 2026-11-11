@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL 16 Relational Operational Store with Vector Extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ridss_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ridss_dalli_rajhara}
+      POSTGRES_USER: ${POSTGRES_USER:-ridss_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ridss_secret_pass_2026}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./database/seed_dalli_rajhara.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ridss_app} -d ${POSTGRES_DB:-ridss_dalli_rajhara}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ridss_net
+
+  # 2. RIDSS Analytical Engine & FastAPI Core
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ridss_backend
+    restart: always
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ridss_app}:${POSTGRES_PASSWORD:-ridss_secret_pass_2026}@postgres:5432/${POSTGRES_DB:-ridss_dalli_rajhara}
+      APP_SECRET_KEY: ${APP_SECRET_KEY:-ridss_production_secret_key_dalli_rajhara_32b}
+      PAYDAY_FACTOR: 1.35
+      FESTIVAL_FACTOR: 1.40
+      PACKAGING_LOSS_FACTOR: 0.008
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ridss_net
+
+  # 3. Next.js 14 Blue & White Operations Dashboard
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ridss_frontend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - ridss_net
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  ridss_net:
+    driver: bridge
